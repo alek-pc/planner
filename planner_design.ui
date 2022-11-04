@@ -10,6 +10,12 @@
     <height>710</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>1120</width>
+    <height>710</height>
+   </size>
+  </property>
   <property name="font">
    <font>
     <pointsize>10</pointsize>
@@ -17,6 +23,9 @@
   </property>
   <property name="windowTitle">
    <string>Планировщик</string>
+  </property>
+  <property name="layoutDirection">
+   <enum>Qt::LeftToRight</enum>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -120,9 +129,9 @@
    <widget class="QLabel" name="date">
     <property name="geometry">
      <rect>
-      <x>277</x>
+      <x>230</x>
       <y>90</y>
-      <width>151</width>
+      <width>261</width>
       <height>41</height>
      </rect>
     </property>
@@ -135,7 +144,7 @@
      <enum>Qt::LeftToRight</enum>
     </property>
     <property name="text">
-     <string>28/10/2022</string>
+     <string>04 ноября 2022 года</string>
     </property>
    </widget>
    <widget class="QPushButton" name="bt_next_month">
@@ -164,16 +173,6 @@
      <string>&lt;-</string>
     </property>
    </widget>
-   <widget class="QListView" name="event_list">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>380</y>
-      <width>341</width>
-      <height>281</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPlainTextEdit" name="event_text">
     <property name="geometry">
      <rect>
@@ -186,44 +185,6 @@
     <property name="plainText">
      <string>Название: 
 Описание: </string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="event_mode">
-    <property name="geometry">
-     <rect>
-      <x>400</x>
-      <y>380</y>
-      <width>161</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>Напоминание</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Выходной</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Праздник</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="bt_add_event">
-    <property name="geometry">
-     <rect>
-      <x>570</x>
-      <y>380</y>
-      <width>161</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Добавить событие</string>
     </property>
    </widget>
    <widget class="QTimeEdit" name="event_time">
@@ -262,19 +223,6 @@
      <string>уведомления</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="bt_date_time_setting">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>100</y>
-      <width>25</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>...</string>
-    </property>
-   </widget>
    <widget class="QListView" name="t_notices">
     <property name="geometry">
      <rect>
@@ -286,16 +234,6 @@
     </property>
     <property name="frameShape">
      <enum>QFrame::Box</enum>
-    </property>
-   </widget>
-   <widget class="QListView" name="notes_list">
-    <property name="geometry">
-     <rect>
-      <x>780</x>
-      <y>20</y>
-      <width>320</width>
-      <height>541</height>
-     </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label">
@@ -323,32 +261,13 @@
      <rect>
       <x>780</x>
       <y>570</y>
-      <width>251</width>
-      <height>81</height>
+      <width>250</width>
+      <height>80</height>
      </rect>
     </property>
     <property name="plainText">
      <string>Название: 
 Запись: </string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="bt_add_note">
-    <property name="geometry">
-     <rect>
-      <x>1030</x>
-      <y>570</y>
-      <width>71</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Добавить
-запись</string>
     </property>
    </widget>
    <widget class="QLabel" name="calendar_month">
@@ -367,6 +286,113 @@
     </property>
     <property name="text">
      <string>oct</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="notes_list">
+    <property name="geometry">
+     <rect>
+      <x>780</x>
+      <y>20</y>
+      <width>320</width>
+      <height>540</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>380</y>
+      <width>331</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QComboBox" name="event_mode">
+       <item>
+        <property name="text">
+         <string>Напоминание</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Выходной</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Праздник</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="bt_add_event">
+       <property name="text">
+        <string>Добавить событие</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="bt_del_event">
+       <property name="text">
+        <string>Удалить</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="bt_del_note">
+    <property name="geometry">
+     <rect>
+      <x>1029</x>
+      <y>608</y>
+      <width>71</width>
+      <height>43</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Удалить</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="bt_add_note">
+    <property name="geometry">
+     <rect>
+      <x>1029</x>
+      <y>569</y>
+      <width>71</width>
+      <height>42</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Добавить
+запись</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="event_list">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>384</y>
+      <width>381</width>
+      <height>280</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
     </property>
    </widget>
   </widget>
