@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>Window</class>
+ <widget class="QMainWindow" name="Window">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>1120</width>
-    <height>710</height>
+    <height>740</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -179,7 +179,7 @@
       <x>400</x>
       <y>440</y>
       <width>329</width>
-      <height>159</height>
+      <height>180</height>
      </rect>
     </property>
     <property name="plainText">
@@ -197,7 +197,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="bt_setting">
+   <widget class="QPushButton" name="bt_settings">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -256,13 +256,13 @@
      <string>Поле для заметок</string>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="t_note">
+   <widget class="QPlainTextEdit" name="note_text">
     <property name="geometry">
      <rect>
       <x>780</x>
       <y>570</y>
       <width>250</width>
-      <height>80</height>
+      <height>129</height>
      </rect>
     </property>
     <property name="plainText">
@@ -352,9 +352,9 @@
     <property name="geometry">
      <rect>
       <x>1029</x>
-      <y>608</y>
+      <y>633</y>
       <width>71</width>
-      <height>43</height>
+      <height>67</height>
      </rect>
     </property>
     <property name="text">
@@ -367,7 +367,7 @@
       <x>1029</x>
       <y>569</y>
       <width>71</width>
-      <height>42</height>
+      <height>67</height>
      </rect>
     </property>
     <property name="font">
@@ -386,7 +386,7 @@
       <x>10</x>
       <y>384</y>
       <width>381</width>
-      <height>280</height>
+      <height>310</height>
      </rect>
     </property>
     <property name="font">
@@ -404,6 +404,9 @@
      <width>1120</width>
      <height>21</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
