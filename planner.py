@@ -6,9 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QAbstra
 from PyQt5.QtCore import QTimer, Qt, QTime
 import sqlite3
 import datetime
-
-MONTHS_NAMES = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май',
-                'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+from constants import *
 
 
 class MainWindow(QMainWindow):
@@ -19,20 +17,10 @@ class MainWindow(QMainWindow):
             QColor.name(QColor(0, 255, 0)))):
         super().__init__()
         self.colors = colors
-        self.InitUi()
 
-    def InitUi(self):
-        uic.loadUi('planner_design.ui', self)  # Загружаем дизайн
-
-        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # запрет на редактирование таблицы
         self.db_con = sqlite3.connect('planner_db.sqlite')
         self.db_cur = self.db_con.cursor()
-
-        self.bt_settings.clicked.connect(self.show_settings)
-
         self.notice_condition = 0
-        self.bt_notices.clicked.connect(self.change_notice_condition)
-        self.change_notice_condition()
 
         self.datetime_now = datetime.datetime.today()
 
@@ -45,6 +33,35 @@ class MainWindow(QMainWindow):
         self.additional_weekend_color = self.colors[6]
         self.notice_color = self.colors[7]
 
+        self.l_item = None
+        self.event_list_ind = 0
+        # self.cell_pressed()
+
+        self.clock = QTimer()
+
+        self.calendar = None
+        self.note_res = None
+
+        self.res = None
+        self.res_notices = None
+        self.res_per_holidays = None
+        self.res_com_holidays = None
+        self.res_additional_weekends = None
+
+        self.ex = None
+
+        self.InitUi()
+
+    def InitUi(self):
+        uic.loadUi('planner_design.ui', self)  # Загружаем дизайн
+
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # запрет на редактирование таблицы
+
+        self.bt_settings.clicked.connect(self.show_settings)
+
+        self.bt_notices.clicked.connect(self.change_notice_condition)
+        self.change_notice_condition()
+
         # for widget in [self.
         self.setStyleSheet("QPlainTextEdit { background-color: yellow }")
         self.setStyleSheet(f'background-color: {self.background_color};')
@@ -52,11 +69,7 @@ class MainWindow(QMainWindow):
         self.load_calendar()
 
         self.table.cellPressed[int, int].connect(self.cell_pressed)
-        self.l_item = None
-        self.event_list_ind = 0
-        # self.cell_pressed()
 
-        self.clock = QTimer()
         self.clock.setInterval(1000)
         self.clock.timeout.connect(self.display_clock)
         self.clock.start()
@@ -143,9 +156,6 @@ class MainWindow(QMainWindow):
                         [(''.join(str(x[0])),) for x in
                          self.db_cur.execute("""select date from notices_db""").fetchall()]):
                     self.table.item(i, j).setForeground(QBrush(QColor(self.notice_color)))
-
-                # покраска ячеек календаря
-                # СДЕЛАТЬ!!!
 
         self.calendar_month.setText(f'{MONTHS_NAMES[month_day.month - 1]} {month_day.year}')  # подпись мес год
 
@@ -415,6 +425,8 @@ class Settings(QMainWindow):
     def __init__(self, colors):
         self.colors = list(colors)
         super().__init__()
+        self.btns = None
+        self.ex2 = None
         self.InitUi()
 
     def InitUi(self):
