@@ -1,9 +1,8 @@
 import sys
-from PyQt5 import uic, QtWidgets
-from PyQt5.QtGui import QPainter, QColor, QBrush, QFont
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QAbstractItemView, \
-    QTableWidget, QColorDialog
-from PyQt5.QtCore import QTimer, Qt, QTime
+from PyQt5 import uic
+from PyQt5.QtGui import QColor, QBrush, QFont
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QAbstractItemView, QColorDialog
+from PyQt5.QtCore import QTimer, QTime
 import sqlite3
 import datetime
 from constants import *
