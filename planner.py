@@ -1,40 +1,46 @@
 import sys
-from PyQt5 import uic
 from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QAbstractItemView, QColorDialog
 from PyQt5.QtCore import QTimer, QTime
 import sqlite3
 import datetime
 from constants import *
+from planner_design import *
+from settings_design import *
 
 
-class MainWindow(QMainWindow):
-    def __init__(self, colors=(
-            QColor.name(QColor(255, 255, 255)), QColor.name(QColor(0, 0, 0)), QColor.name(QColor(0, 0, 255)),
-            QColor.name(QColor(255, 0, 0)),
-            QColor.name(QColor(255, 0, 0)), QColor.name(QColor(255, 0, 0)), QColor.name(QColor(255, 0, 0)),
-            QColor.name(QColor(0, 255, 0)))):
+class MainWindow(Ui_Window, QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.colors = colors
+        self.setupUi(self)
 
         self.db_con = sqlite3.connect('planner_db.sqlite')
         self.db_cur = self.db_con.cursor()
-        self.notice_condition = 0
 
         self.datetime_now = datetime.datetime.today()
 
-        self.background_color = self.colors[0]
-        self.text_color = self.colors[1]
-        self.simple_day_color = self.colors[2]
-        self.weekend_color = self.colors[3]
-        self.common_holiday_color = self.colors[4]
-        self.personal_holiday_color = self.colors[5]
-        self.additional_weekend_color = self.colors[6]
-        self.notice_color = self.colors[7]
+        self.widgets = [self.bt_add_note, self.bt_del_note, self.bt_next_month, self.bt_previous_month,
+                        self.bt_settings, self.calendar_month, self.date, self.event_list, self.event_text,
+                        self.event_time, self.bt_add_event, self.bt_del_event, self.event_mode, self.label,
+                        self.note_text, self.notes_list, self.table, self.time]
+
+        self.settings = self.db_cur.execute("""select * from settings_db""").fetchone()
+
+        self.background_color = self.settings[0]
+        self.text_color = self.settings[1]
+        self.simple_day_color = self.settings[2]
+        self.weekend_color = self.settings[3]
+        self.common_holiday_color = self.settings[4]
+        self.personal_holiday_color = self.settings[5]
+        self.additional_weekend_color = self.settings[6]
+        self.notice_color = self.settings[7]
+
+        for widget in self.widgets:
+            widget.setStyleSheet(f"""color: {self.text_color};
+border: 1px solid {self.text_color}""")
 
         self.l_item = None
         self.event_list_ind = 0
-        # self.cell_pressed()
 
         self.clock = QTimer()
 
@@ -42,26 +48,22 @@ class MainWindow(QMainWindow):
         self.note_res = None
 
         self.res = None
-        self.res_notices = None
-        self.res_per_holidays = None
-        self.res_com_holidays = None
-        self.res_additional_weekends = None
+        self.res_notices = []
+        self.res_per_holidays = []
+        self.res_com_holidays = []
+        self.res_additional_weekends = []
 
         self.ex = None
 
         self.InitUi()
 
     def InitUi(self):
-        uic.loadUi('planner_design.ui', self)  # Загружаем дизайн
+        # uic.loadUi('planner_design.ui', self)  # Загружаем дизайн
 
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # запрет на редактирование таблицы
 
         self.bt_settings.clicked.connect(self.show_settings)
 
-        self.bt_notices.clicked.connect(self.change_notice_condition)
-        self.change_notice_condition()
-
-        # for widget in [self.
         self.setStyleSheet("QPlainTextEdit { background-color: yellow }")
         self.setStyleSheet(f'background-color: {self.background_color};')
 
@@ -120,7 +122,6 @@ class MainWindow(QMainWindow):
                 self.table.item(i, j).setFont(QFont('Segoe UI', 15, QFont.Bold))
                 self.table.item(i, j).setForeground(QBrush(QColor(self.simple_day_color)))
                 if j > 4:
-                    # self.table.item(i, j).setBackground(QColor(200, 0, 0))
                     self.table.item(i, j).setForeground(QBrush(QColor(self.weekend_color)))
 
                 if i > 1 and elem < 7:
@@ -139,21 +140,28 @@ class MainWindow(QMainWindow):
                     date = [str(elem), str(self.datetime_now.month),
                             str(self.datetime_now.year)]
 
-                if (('.'.join(date[:2]),) in
-                        [(''.join(str(x[0])),) for x in
-                         self.db_cur.execute("""select interval from common_holidays_db""").fetchall()]):
+                interval = []
+                for x in self.db_cur.execute("""select interval from common_holidays_db""").fetchall():
+                    interval += [str(y) for y in str(x[0]).split()]
+                if '.'.join(date[:2]) in interval:
                     self.table.item(i, j).setForeground(QBrush(QColor(self.common_holiday_color)))
-                if (('.'.join(date[:2]),) in
-                        [(''.join(str(x[0])),) for x in
-                         self.db_cur.execute("""select interval from personal_holidays_db""").fetchall()]):
+
+                interval = []
+                for x in self.db_cur.execute("""select interval from personal_holidays_db""").fetchall():
+                    interval += [str(y) for y in str(x[0]).split()]
+                if '.'.join(date[:2]) in interval:
                     self.table.item(i, j).setForeground(QBrush(QColor(self.personal_holiday_color)))
-                if (('.'.join(date),) in
-                        [(''.join(str(x[0])),) for x in
-                         self.db_cur.execute("""select interval from additional_weekends_db""").fetchall()]):
+
+                interval = []
+                for x in self.db_cur.execute("""select interval from additional_weekends_db""").fetchall():
+                    interval += [str(y) for y in str(x[0]).split()]
+                if '.'.join(date) in interval:
                     self.table.item(i, j).setForeground(QBrush(QColor(self.personal_holiday_color)))
-                if (('.'.join(date),) in
-                        [(''.join(str(x[0])),) for x in
-                         self.db_cur.execute("""select date from notices_db""").fetchall()]):
+
+                interval = []
+                for x in self.db_cur.execute("""select date from notices_db""").fetchall():
+                    interval += [str(y) for y in str(x[0]).split()]
+                if '.'.join(date) in interval:
                     self.table.item(i, j).setForeground(QBrush(QColor(self.notice_color)))
 
         self.calendar_month.setText(f'{MONTHS_NAMES[month_day.month - 1]} {month_day.year}')  # подпись мес год
@@ -169,14 +177,6 @@ class MainWindow(QMainWindow):
                 if month_day.year % 4:  # високосный год
                     month_len -= 1
         return month_len
-
-    # прятки шторки уведомлений
-    def change_notice_condition(self):
-        if self.notice_condition:
-            self.t_notices.show()
-        else:
-            self.t_notices.hide()
-        self.notice_condition = not self.notice_condition
 
     # показ часы + дата
     def display_clock(self):
@@ -256,23 +256,52 @@ and text='{self.note_res[self.notes_list.currentRow()][1]}'""")
             else:
                 date = [str(self.table.currentItem().text()), str(self.datetime_now.month), str(self.datetime_now.year)]
         else:  # выбрано несколько дней
-            date = [f'{self.table.selectedItems()[0].text()}-{self.table.selectedItems()[-1].text()}',
-                    str(self.datetime_now.month), str(self.datetime_now.year)]
+            date = []
+            for item in self.table.selectedItems():
+                if self.table.indexFromItem(item).row() > 1 and int(item.text()) < 7:
+                    date.append([str(item.text()),
+                                 str((self.datetime_now + datetime.timedelta(days=31)).month),
+                                 str((self.datetime_now + datetime.timedelta(days=31)).year)])
+                elif self.table.indexFromItem(item).row() == 0 and int(item.text()) > 20:
+                    date.append([str(item.text()),
+                                 str((self.datetime_now - datetime.timedelta(days=20)).month),
+                                 str((self.datetime_now - datetime.timedelta(days=20)).year)])
+                else:
+                    date.append([str(item.text()), str(self.datetime_now.month),
+                                 str(self.datetime_now.year)])
 
         if self.event_mode.currentIndex() == 0:  # напоминание
             title = ' '.join(text[0].split()[1:])  # название события
             event = ' '.join(' '.join(text[1:]).split()[1:])  # событие
             time = self.event_time.time()
 
+            if len(date[0]) == 3:
+                date = ' '.join(['.'.join(i) for i in date])
+            else:
+                date = '.'.join(date)
+
             self.db_cur.execute(f"""insert into notices_db(title, text, date, time) 
-values('{title}', '{event}', '{'.'.join(date)}', '{time.hour()}:{time.minute()}')""")
+values('{title}', '{event}', '{date}', '{time.hour()}:{time.minute()}')""")
 
         elif self.event_mode.currentIndex() == 1:  # свой выходной
+
+            if len(date[0]) == 3:
+                date = ' '.join(['.'.join(i) for i in date])
+            else:
+                date = '.'.join(date)
+
             self.db_cur.execute(f"""insert into additional_weekends_db(title, interval) 
-            values('{' '.join(text[0].split()[1:])}', '{'.'.join(date)}')""")
+            values('{' '.join(text[0].split()[1:])}', '{date}')""")
         else:  # свой праздник
+
+            if len(date[0]) == 3:
+                date = ' '.join(['.'.join(i[:2]) for i in date])
+            else:
+                date = '.'.join(date[:2])
+
             self.db_cur.execute(f"""insert into personal_holidays_db(title, interval) 
-                        values('{' '.join(text[0].split()[1:])}', '{'.'.join(date[:2])}')""")
+                        values('{' '.join(text[0].split()[1:])}', '{date}')""")
+
         self.db_con.commit()
         self.cell_pressed(list_cond=1)
         self.load_calendar()
@@ -324,17 +353,25 @@ and text='{event[1]}' and date='{event[3]}' and time='{event[2]}'""")
                 date = [str(self.table.currentItem().text()), str(self.datetime_now.month), str(self.datetime_now.year)]
 
             # данные из бд
-            self.res_notices = self.db_cur.execute(f"""select title, text, time, date from notices_db 
-    where date='{'.'.join(date)}'""").fetchall()
+            self.res_notices = []
+            for notice in self.db_cur.execute(f"""select title, text, time, date from notices_db""").fetchall():
+                if '.'.join(date) in str(notice[3]).split():
+                    self.res_notices.append(tuple(notice))
 
-            self.res_per_holidays = self.db_cur.execute(f"""select title, interval from personal_holidays_db 
-    where interval='{'.'.join(date[:2])}'""").fetchall()
+            self.res_per_holidays = []
+            for holiday in self.db_cur.execute(f"""select title, interval from personal_holidays_db""").fetchall():
+                if '.'.join(date[:2]) in str(holiday[1]).split():
+                    self.res_per_holidays.append(tuple(holiday))
 
-            self.res_additional_weekends = self.db_cur.execute(f"""select title, interval from additional_weekends_db
-    where interval='{'.'.join(date)}'""").fetchall()
+            self.res_additional_weekends = []
+            for holiday in self.db_cur.execute(f"""select title, interval from additional_weekends_db""").fetchall():
+                if '.'.join(date) in str(holiday[1]).split():
+                    self.res_additional_weekends.append(tuple(holiday))
 
-            self.res_com_holidays = self.db_cur.execute(f"""select title, interval from common_holidays_db
-    where interval='{'.'.join(date[:2])}'""").fetchall()
+            self.res_com_holidays = []
+            for holiday in self.db_cur.execute(f"""select title, interval from common_holidays_db""").fetchall():
+                if '.'.join(date[:2]) in str(holiday[1]).split():
+                    self.res_com_holidays.append(tuple(holiday))
 
             if not self.res_notices + self.res_per_holidays + self.res_com_holidays + self.res_additional_weekends:
                 self.event_list.clear()
@@ -412,7 +449,7 @@ and text='{event[1]}' and date='{event[3]}' and time='{event[2]}'""")
             self.event_text.setGeometry(400, 410, 329, 210)
 
     def show_settings(self):
-        self.ex = Settings(self.colors)
+        self.ex = Settings()
         self.ex.show()
         self.close()
 
@@ -420,32 +457,88 @@ and text='{event[1]}' and date='{event[3]}' and time='{event[2]}'""")
         self.db_cur.close()
 
 
-class Settings(QMainWindow):
-    def __init__(self, colors):
-        self.colors = list(colors)
+class Settings(QMainWindow, Ui_MainWindow):
+    def __init__(self):
         super().__init__()
+        self.setupUi(self)
+        self.db_con = sqlite3.connect('planner_db.sqlite')
+        self.db_cur = self.db_con.cursor()
+        self.colors = list(self.db_cur.execute("""select * from settings_db""").fetchone())
         self.btns = None
+        self.column_names = ['background_color', 'text_color', 'workday_color', 'weekend_color', 'common_holiday_color',
+                             'personal_holiday_color', 'additional_weekend_color', 'notice_color', 'font_type',
+                             'font_size']
+        self.rbt_checked = 0
         self.ex2 = None
         self.InitUi()
 
     def InitUi(self):
-        uic.loadUi('settings_design.ui', self)
         self.bt_back.clicked.connect(self.show_main)
         self.btns = [self.bt1, self.bt2, self.bt3, self.bt4, self.bt5, self.bt6, self.bt7, self.bt8]
         for i, bt in enumerate(self.btns):
             bt.setStyleSheet(f'background-color: {self.colors[i]}')
             bt.clicked.connect(self.change_color)
+        self.standard.clicked.connect(self.color_standard)
+
+        self.rbt_dark_theme.toggled.connect(self.turn_dark_theme)
+        self.rbt_light_theme.toggled.connect(self.turn_light_theme)
+        self.check_theme()
+
+    def turn_dark_theme(self):
+        if not self.rbt_checked:
+            self.db_cur.execute(f"""update settings_db set {', '.join([f"{i} = '{k}'" for i, k
+                                                                       in DARK_THEME_COLORS.items()])}""")
+            self.db_con.commit()
+            self.update_bt_color()
+
+    def turn_light_theme(self):
+        if not self.rbt_checked:
+            self.db_cur.execute(f"""update settings_db set {', '.join([f"{i} = '{k}'" for i, k
+                                                                       in LIGHT_THEME_COLORS.items()])}""")
+            self.db_con.commit()
+            self.update_bt_color()
+
+    def check_theme(self):
+        self.rbt_checked = 1
+        colors = list(self.db_cur.execute("""select background_color, text_color from settings_db""").fetchone())
+        if (colors[0] == LIGHT_THEME_COLORS['background_color']
+                and colors[1] == LIGHT_THEME_COLORS['text_color']):
+            self.rbt_light_theme.setChecked(1)
+        elif (colors[0] == DARK_THEME_COLORS['background_color']
+              and colors[1] == DARK_THEME_COLORS['text_color']):
+            self.rbt_dark_theme.setChecked(1)
+        else:
+            self.rbt_own_theme.setChecked(1)
+        self.rbt_checked = 0
+
+    def update_bt_color(self):
+        colors = list(self.db_cur.execute("""select * from settings_db""").fetchone())
+        for i, bt in enumerate(self.btns):
+            bt.setStyleSheet(f'background-color: {colors[i]}')
 
     def show_main(self):
-        self.ex2 = MainWindow(self.colors)
+        self.ex2 = MainWindow()
+        self.db_con.close()
         self.ex2.show()
         self.close()
+
+    def color_standard(self):
+        self.db_cur.execute(
+            f"""update settings_db set {', '.join([f"{i} = '{k}'" for i, k in STANDARD_CALENDAR_COLORS.items()])}""")
+        self.db_con.commit()
+
+        self.update_bt_color()
 
     def change_color(self):
         color = QColorDialog.getColor()
         if color.isValid():
-            self.sender().setStyleSheet(f'background-color: {color.name()}')
-            self.colors[self.btns.index(self.sender())] = color.name()
+            self.sender().setStyleSheet(f"background-color: '{color.name()}'")
+
+            self.db_cur.execute(f"""update settings_db 
+set {self.column_names[self.btns.index(self.sender())]} = '{color.name()}'""")
+            self.db_con.commit()
+
+            self.check_theme()
 
 
 if __name__ == '__main__':
